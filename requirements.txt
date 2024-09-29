@@ -1,0 +1,4 @@
+urllib3 
+loguru 
+requests 
+whatsapp-api-client-python
