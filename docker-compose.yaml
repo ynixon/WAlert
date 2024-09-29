@@ -1,0 +1,13 @@
+version: "3.6"
+services:
+  redalert:
+    image: techblog/walert
+    container_name: walert
+    restart: always
+    environment:
+      - DEBUG_MODE=False
+      - REGION=[* for any or region name)
+      - INCLUDE_TEST_ALERTS=[False|True]
+      - GREEN_API_INSTANCE = #GREEN_API_INSTANCE
+      - GREEN_API_TOKEN = #GREEN_API_TOKEN
+      - WHATSAPP_NUMBER = #WHATSAPP_NUMBER
