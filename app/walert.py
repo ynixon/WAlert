@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import threading
-import paho.mqtt.client as mqtt
 import urllib3
 import os
 import requests
@@ -9,7 +8,6 @@ import re
 from loguru import logger
 import time
 import codecs
-import apprise
 import json
 from whatsapp_api_client_python import API
 
@@ -38,7 +36,8 @@ if debug == 'True':
 alerts = [0]
 
 def alarm_on(data):
-    wapp_title = ""#f"*{str(data["title"])}*"
+    title = str(data["title"])
+    wapp_title = f"*{title}*"
     categorized_places = categorize_places(lamas, data["data"])
     places = format_output(categorized_places)
     body='באזורים הבאים: \r\n ' + places
