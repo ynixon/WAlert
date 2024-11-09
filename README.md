@@ -1,5 +1,6 @@
 # WAlert
-A WhatsApp bot for sending Red Alert notifications using the Green API.
+WAlert is a real-time alert monitoring bot that checks for Red Alert notifications from the Oref website and sends them to designated WhatsApp numbers using the Green API. This tool is ideal for users who need immediate notifications for specific regions in Israel, with options to include or exclude test alerts.
+
 
 
 ## Overview
