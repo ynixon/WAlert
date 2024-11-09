@@ -13,10 +13,7 @@ ENV PYTHONIOENCODING="utf-8" \
     LANG="C.UTF-8" \
     DEBUG_MODE="False" \
     REGION="*" \
-    INCLUDE_TEST_ALERTS="False" \
-    GREEN_API_INSTANCE="" \
-    GREEN_API_TOKEN="" \
-    WHATSAPP_NUMBER=""
+    INCLUDE_TEST_ALERTS="False"
 
 # Copy and install Python dependencies
 COPY requirements.txt /tmp/requirements.txt
