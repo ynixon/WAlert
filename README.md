@@ -71,12 +71,14 @@ You can install WAlert using either a Docker container or set it up as a systemd
 ### Option 2: Manual Installation (Systemd Service)
 
 1. **Clone the Repository or Download the ZIP Package**
+   #### Clone via Git
    ```bash
-   # Clone via Git
    git clone https://github.com/ynixon/walert.git
    cd walert
+   ```
 
-   # Alternatively, download and extract the ZIP package
+   #### Alternatively, download and extract the ZIP package
+   ```bash
    curl -LO https://github.com/ynixon/walert/archive/main.zip
    unzip main.zip
    cd walert-main
