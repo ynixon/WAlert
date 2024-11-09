@@ -19,18 +19,8 @@ You can install WAlert using either a Docker container or set it up as a systemd
    docker pull ynixon/walert:latest
    ```
 
-2. **Run the Docker Container with Secrets**  
-   To run the container securely, use environment variables for non-sensitive data and provide sensitive data at runtime:
-   ```bash
-   docker run -d \
-       -e DEBUG_MODE="False" \
-       -e REGION="*" \
-       -e INCLUDE_TEST_ALERTS="False" \
-       -e GREEN_API_INSTANCE="your_green_api_instance" \
-       -e WHATSAPP_NUMBER="your_whatsapp_number" \
-       --name walert ynixon/walert:latest
-   ```
-   Provide `GREEN_API_TOKEN` at runtime:
+2. **Run the Docker Container Securely**  
+   To run the container securely, pass sensitive information like `GREEN_API_TOKEN` at runtime instead of hardcoding it:
    ```bash
    GREEN_API_TOKEN="your_green_api_token" docker run -d \
        -e DEBUG_MODE="False" \
@@ -42,7 +32,7 @@ You can install WAlert using either a Docker container or set it up as a systemd
    ```
 
 3. **Using Docker Compose**  
-   You can also use `docker-compose` for more complex setups or for easier management. To use secrets securely with Docker Compose, ensure that `GREEN_API_TOKEN` is stored as an external secret in your Docker environment:
+   For ease of management, you can use `docker-compose`:
    ```yaml
    version: "3.6"
    services:
@@ -56,27 +46,23 @@ You can install WAlert using either a Docker container or set it up as a systemd
          INCLUDE_TEST_ALERTS: "False"
          GREEN_API_INSTANCE: "your_green_api_instance"
          WHATSAPP_NUMBER: "your_whatsapp_number"
-       secrets:
-         - GREEN_API_TOKEN
-
-   secrets:
-     GREEN_API_TOKEN:
-       external: true
    ```
-   To run with Docker Compose:
+   To run with Docker Compose, pass `GREEN_API_TOKEN` at runtime:
    ```bash
-   docker-compose up -d
+   GREEN_API_TOKEN=your_green_api_token docker-compose up -d
    ```
 
 ### Option 2: Manual Installation (Systemd Service)
 
 1. **Clone the Repository or Download the ZIP Package**
+   #### Clone via Git
    ```bash
-   # Clone via Git
    git clone https://github.com/ynixon/walert.git
    cd walert
+   ```
 
-   # Alternatively, download and extract the ZIP package
+   #### Alternatively, download and extract the ZIP package
+   ```bash
    curl -LO https://github.com/ynixon/walert/archive/main.zip
    unzip main.zip
    cd walert-main
@@ -89,7 +75,7 @@ You can install WAlert using either a Docker container or set it up as a systemd
    ```
 
 3. **Create a .env File**
-   In the root directory, create a `.env` file to configure non-sensitive environment variables. For sensitive data, such as `GREEN_API_TOKEN`, provide it securely at runtime.
+   In the root directory, create a `.env` file to configure non-sensitive environment variables. For sensitive data, such as `GREEN_API_TOKEN`, provide it securely at runtime rather than storing it in the `.env` file.
    ```makefile
    DEBUG_MODE=False
    REGION=*
@@ -113,6 +99,7 @@ You can install WAlert using either a Docker container or set it up as a systemd
    User=your-username
    WorkingDirectory=/path/to/walert
    EnvironmentFile=/path/to/walert/.env
+   Environment=GREEN_API_TOKEN=your_green_api_token  # Pass securely in production
    ExecStart=/usr/bin/python3 /path/to/walert/main.py
    Restart=always
    RestartSec=5
@@ -139,9 +126,9 @@ You can install WAlert using either a Docker container or set it up as a systemd
 * **REGION**: Specify the region for monitoring (`*` for all regions).
 * **INCLUDE_TEST_ALERTS**: Include test alerts from Oref (default: False).
 * **GREEN_API_INSTANCE**: Your Green API instance ID.
-* **GREEN_API_TOKEN**: Your Green API token for authentication. **Do not store this directly in the Dockerfile**.
+* **GREEN_API_TOKEN**: Your Green API token for authentication. **Do not store this directly in the Dockerfile** or `.env` in production.
 * **WHATSAPP_NUMBER**: The WhatsApp number where alerts will be sent.
     - For contacts, the number should end with `@c.us`
     - For groups, the number should end with `@g.us`
 
-Refer to the [Green API documentation](https://green-api.com/en/docs/) for more information.
+Refer to the [Green API documentation](https://green-api.com/en/docs/) for more information. 

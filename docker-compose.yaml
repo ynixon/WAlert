@@ -10,9 +10,3 @@ services:
       INCLUDE_TEST_ALERTS: "False"      # Set to "True" to include test alerts
       GREEN_API_INSTANCE: "your_green_api_instance"  # Replace with actual instance ID
       WHATSAPP_NUMBER: "your_whatsapp_number"        # Format as number@c.us for contacts or number@g.us for groups
-    secrets:
-      - GREEN_API_TOKEN
-
-secrets:
-  GREEN_API_TOKEN:
-    external: true
