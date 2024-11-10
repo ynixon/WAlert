@@ -27,7 +27,11 @@ GREEN_API_TOKEN = os.getenv("GREEN_API_TOKEN")
 WHATSAPP_NUMBER = os.getenv("WHATSAPP_NUMBER")
 # reader = codecs.getreader('utf-8')
 
-logger.info("Monitoring alerts for :" + region)
+if not GREEN_API_TOKEN:
+    logger.error("GREEN_API_TOKEN is not set. Please provide it securely at runtime.")
+    exit(1)  # Exit if token is missing
+
+logger.info(f"Monitoring alerts for: {region}")
 
 # Setting Request Headers
 http = urllib3.PoolManager()
