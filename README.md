@@ -36,7 +36,7 @@ You can install WAlert using either a Docker container or set it up as a systemd
    ```yaml
    version: "3.6"
    services:
-     walert:
+     redalert:
        image: ynixon/walert:latest
        container_name: walert
        restart: always
@@ -45,11 +45,13 @@ You can install WAlert using either a Docker container or set it up as a systemd
          REGION: "*"
          INCLUDE_TEST_ALERTS: "False"
          GREEN_API_INSTANCE: "your_green_api_instance"
+         GREEN_API_TOKEN: "your_green_api_token"       # Securely add the token here
          WHATSAPP_NUMBER: "your_whatsapp_number"
    ```
-   To run with Docker Compose, pass `GREEN_API_TOKEN` at runtime:
+   **Run Docker Compose**  
+   Run the container with Docker Compose:
    ```bash
-   GREEN_API_TOKEN=your_green_api_token docker-compose up -d
+   docker-compose up -d
    ```
 
 ### Option 2: Manual Installation (Systemd Service)
@@ -126,7 +128,7 @@ You can install WAlert using either a Docker container or set it up as a systemd
 * **REGION**: Specify the region for monitoring (`*` for all regions).
 * **INCLUDE_TEST_ALERTS**: Include test alerts from Oref (default: False).
 * **GREEN_API_INSTANCE**: Your Green API instance ID.
-* **GREEN_API_TOKEN**: Your Green API token for authentication. **Do not store this directly in the Dockerfile** or `.env` in production.
+* **GREEN_API_TOKEN**: Your Green API token for authentication.
 * **WHATSAPP_NUMBER**: The WhatsApp number where alerts will be sent.
     - For contacts, the number should end with `@c.us`
     - For groups, the number should end with `@g.us`
