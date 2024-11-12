@@ -15,21 +15,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
-      - name: Get semantic version from file
-        run: echo "SEMVER=$(cat VERSION | tr -d ' \t\n\r')" >> $GITHUB_ENV
-         
-      - name: Create Tag
-        uses: negz/create-tag@v1
-        with:
-          version: "${{ env.SEMVER }}"
-          message: "Release version ${{ env.SEMVER }}"
-          token: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: "Create Release"
-        uses: marvinpinto/action-automatic-releases@latest
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "${{ env.SEMVER }}"
-          prerelease: false
-          title: "Release - ${{ env.SEMVER }}"
+      - name: Get semantic version from file
+        run: |
+          SEMVER=$(cat VERSION | tr -d ' \t\n\r')
+          echo "SEMVER=$SEMVER" >> $GITHUB_ENV
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh
+
+      - name: Create Git Tag
+        run: |
+          git tag -a "${{ env.SEMVER }}" -m "Release version ${{ env.SEMVER }}"
+          git push origin "${{ env.SEMVER }}"
+        env:
+          SEMVER: ${{ env.SEMVER }}
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Create Release
+        run: gh release create "${{ env.SEMVER }}" -t "Release ${{ env.SEMVER }}" -n "Automatic release based on version ${{ env.SEMVER }}"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          SEMVER: ${{ env.SEMVER }}
