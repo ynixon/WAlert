@@ -2,7 +2,7 @@
 WAlert is a real-time alert monitoring bot that checks for Red Alert notifications from the Oref website and sends them to designated WhatsApp numbers using the Green API. This tool is ideal for users who need immediate notifications for specific regions in Israel, with options to include or exclude test alerts.
 
 ## Overview
-WAlert is a Python-based bot that monitors alert notifications from the [Oref](https://www.oref.org.il/heb) website and forwards them via WhatsApp using the [Green API](https://green-api.com/). The bot categorizes and formats alerts, sending them to designated WhatsApp numbers in real-time. You can configure it to monitor specific regions and choose whether or not to receive test alerts.
+WAlert is a Python-based bot that monitors alert notifications from the [Oref](https://www.oref.org.il/heb) website and forwards them via WhatsApp using the [Green API](https://green-api.com/). The bot categorizes and formats alerts, sending them to designated WhatsApp numbers in real time. You can configure it to monitor specific regions and choose whether or not to receive test alerts.
 
 ## Prerequisites
 * Python 3.10+ (for manual installation)
@@ -23,7 +23,7 @@ You can install WAlert using either a Docker container or set it up as a systemd
    To run the container securely, pass sensitive information like `GREEN_API_TOKEN` at runtime instead of hardcoding it:
    ```bash
    GREEN_API_TOKEN="your_green_api_token" docker run -d \
-       -e DEBUG_MODE="False" \
+       -e LOG_LEVEL="INFO" \
        -e REGION="*" \
        -e INCLUDE_TEST_ALERTS="False" \
        -e GREEN_API_INSTANCE="your_green_api_instance" \
@@ -41,7 +41,7 @@ You can install WAlert using either a Docker container or set it up as a systemd
        container_name: walert
        restart: always
        environment:
-         DEBUG_MODE: "False"
+         LOG_LEVEL: "INFO"
          REGION: "*"
          INCLUDE_TEST_ALERTS: "False"
          GREEN_API_INSTANCE: "your_green_api_instance"
@@ -77,7 +77,7 @@ You can install WAlert using either a Docker container or set it up as a systemd
 3. **Create a .env File**
    In the root directory, create a `.env` file to configure non-sensitive environment variables. For sensitive data, such as `GREEN_API_TOKEN`, provide it securely at runtime rather than storing it in the `.env` file.
    ```makefile
-   DEBUG_MODE=False
+   LOG_LEVEL=INFO  # Options: DEBUG, INFO, WARNING, ERROR, OFF
    REGION=*
    INCLUDE_TEST_ALERTS=False
    GREEN_API_INSTANCE=your_green_api_instance
@@ -122,7 +122,7 @@ You can install WAlert using either a Docker container or set it up as a systemd
 
 ## Environment Variables
 
-* **DEBUG_MODE**: Enable test mode to simulate alerts (default: False).
+* **LOG_LEVEL**: Set the logging level. Options: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `OFF` (default: INFO).
 * **REGION**: Specify the region for monitoring (`*` for all regions).
 * **INCLUDE_TEST_ALERTS**: Include test alerts from Oref (default: False).
 * **GREEN_API_INSTANCE**: Your Green API instance ID.
@@ -131,4 +131,4 @@ You can install WAlert using either a Docker container or set it up as a systemd
     - For contacts, the number should end with `@c.us`
     - For groups, the number should end with `@g.us`
 
-Refer to the [Green API documentation](https://green-api.com/en/docs/) for more information. 
+Refer to the [Green API documentation](https://green-api.com/en/docs/) for more information.

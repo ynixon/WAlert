@@ -4,6 +4,7 @@ import threading
 import urllib3
 import os
 import requests
+import sys
 import re
 from loguru import logger
 import time
@@ -19,7 +20,28 @@ load_dotenv()
 os.environ["PYTHONIOENCODING"] = "utf-8"
 os.environ["LANG"] = "C.UTF-8"
 
-debug = os.getenv("DEBUG_MODE")
+# Fetch the debug level setting from environment variables
+log_level = os.getenv("LOG_LEVEL", "info").upper()  # Default to "info" if not set
+
+# Configure logger based on debug level
+logger.remove()  # Remove default logger to reconfigure
+
+# Map environment variable values to loguru levels
+level_mapping = {
+    "DEBUG": "DEBUG",
+    "INFO": "INFO",
+    "WARNING": "WARNING",
+    "ERROR": "ERROR",
+    "OFF": None  # Special case to disable logging
+}
+
+selected_level = level_mapping.get(log_level, "INFO")
+
+if selected_level:
+    logger.add(sys.stderr, level=selected_level)  # Add logger with selected level
+else:
+    logger.disable(__name__)  # Disable logging completely if "off"
+
 region = os.getenv("REGION")
 INCLUDE_TEST_ALERTS = os.getenv("INCLUDE_TEST_ALERTS")
 GREEN_API_INSTANCE = os.getenv("GREEN_API_INSTANCE")
@@ -40,9 +62,11 @@ _headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36",
     "X-Requested-With": "XMLHttpRequest",
 }
-url = "https://www.oref.org.il/WarningMessages/alert/alerts.json"
-if debug == "True":
+# Configure local URL if debug level is set to DEBUG
+if log_level == "DEBUG":
     url = "http://localhost/alerts.json"
+else:
+    url = "https://www.oref.org.il/WarningMessages/alert/alerts.json"
 
 MAX_ALERTS = 1000  # Adjust based on expected alert volume
 alerts = []  # List to store processed alert IDs
@@ -57,13 +81,14 @@ def check_dns():
 
 def fetch_alert_data():
     retries = 0
-    max_delay = 300  # Maximum wait time between retries (e.g., 5 minutes)
-    
+    max_delay = 300  # Maximum wait time between retries (5 minutes)
+
     while True:
         try:
             r = http.request("GET", url, headers=_headers)
             if r.status == 200:
                 retries = 0  # Reset retries on success
+                logger.debug("Fetched alert data successfully")
                 return r.data.decode("utf-8-sig").strip()
             else:
                 logger.error(f"Failed to fetch alert data: HTTP status {r.status}")
@@ -198,22 +223,21 @@ def monitor():
     threading.Timer(1, monitor).start()
     try:
         # Load alert data from file in debug mode, otherwise fetch from the URL
-        if debug == "True":
+        if log_level == "DEBUG":
             with open("alerts.json", "r", encoding="utf-8") as f:
                 alert = json.load(f)
         else:
-            
-
             # Fetch alert data with retry logic
             alert_data = fetch_alert_data()
 
             if not alert_data:
-                #logger.warning("No alert data received, skipping processing.")
+                logger.debug("No alert data received, skipping processing.")
                 return  # Skip further processing if alert data is missing
 
             try:
                 # Parse JSON data
                 alert = json.loads(alert_data)
+                logger.debug(f"Parsed alert JSON: {alert}")
             except json.JSONDecodeError as ex:
                 logger.error(f"JSON Decode Error in monitor: {ex} - Data received: {alert_data}")
                 return  # Skip further processing if JSON decoding fails
@@ -224,15 +248,16 @@ def monitor():
             if alert["id"] not in alerts and not is_test_alert(alert):
                 add_alert_id(alert["id"])
                 alarm_on(alert)
-                logger.info(f"Processed alert: {alert}")
-
+                logger.info(f"Processed alert ID: {alert['id']}")
+            else:
+                logger.debug(f"Alert already processed or marked as test: {alert['id']}")
     except Exception as ex:
         logger.error(f"Error in monitor: {ex}")
 
 # Ensure to initialize and start the monitor loop
 if __name__ == "__main__":
     check_dns()  # Check DNS resolution before starting
-    if debug == "True":
+    if log_level == "DEBUG":
         start_local_server()
     lamas = load_lamas_data()
     monitor()
