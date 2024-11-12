@@ -1,0 +1,35 @@
+name: "Create Release"
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Docker Build"]
+    types:
+      - completed  
+
+jobs:
+  release:
+    name: "Release"
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Get semantic version from file
+        run: echo "SEMVER=$(cat VERSION | tr -d ' \t\n\r')" >> $GITHUB_ENV
+         
+      - name: Create Tag
+        uses: negz/create-tag@v1
+        with:
+          version: "${{ env.SEMVER }}"
+          message: "Release version ${{ env.SEMVER }}"
+          token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: "Create Release"
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "${{ env.SEMVER }}"
+          prerelease: false
+          title: "Release - ${{ env.SEMVER }}"
