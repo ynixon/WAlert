@@ -29,8 +29,14 @@ jobs:
       - name: Get Latest Tag and Increment Version
         id: version
         run: |
-          # Get the latest tag (or default to 0.0.0 if no tags exist)
-          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "0.0.0")
+          # Fetch all tags
+          git fetch --tags
+
+          # Get the latest tag, or default to 0.0.0 if no tags exist
+          LATEST_TAG=$(git tag --sort=-v:refname | head -n 1)
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="0.0.0"
+          fi
           echo "Latest tag: $LATEST_TAG"
 
           # Parse MAJOR, MINOR, PATCH components and increment PATCH
