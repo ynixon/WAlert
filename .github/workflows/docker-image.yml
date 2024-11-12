@@ -3,12 +3,8 @@ name: "Docker Build"
 on:
   push:
     branches:
-      - main        # or specify other branches as needed
-  workflow_dispatch:  # Allows manual dispatch
-  workflow_run:
-    workflows: [Create Release]
-    types:
-      - completed  
+      - main
+  workflow_dispatch:
 
 jobs:
   docker:
