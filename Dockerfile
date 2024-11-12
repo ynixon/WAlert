@@ -11,7 +11,7 @@ RUN apt-get update && \
 # Set environment variables for Python encoding and locale
 ENV PYTHONIOENCODING="utf-8" \
     LANG="C.UTF-8" \
-    DEBUG_MODE="False" \
+    LOG_LEVEL="INFO" \
     REGION="*" \
     INCLUDE_TEST_ALERTS="False"
 
