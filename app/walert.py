@@ -89,7 +89,8 @@ def fetch_alert_data():
             if r.status == 200:
                 retries = 0  # Reset retries on success
                 logger.debug("Fetched alert data successfully")
-                return r.data.decode("utf-8-sig").strip()
+                return r.data.decode("utf-8-sig").strip().replace("\x00", "")
+
             else:
                 logger.error(f"Failed to fetch alert data: HTTP status {r.status}")
         except Exception as e:
@@ -229,6 +230,7 @@ def monitor():
         else:
             # Fetch alert data with retry logic
             alert_data = fetch_alert_data()
+            logger.debug(f"Raw alert data: {alert_data}")
 
             if not alert_data:
                 logger.debug("No alert data received, skipping processing.")
