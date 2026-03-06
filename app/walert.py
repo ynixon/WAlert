@@ -71,6 +71,9 @@ else:
 MAX_ALERTS = 1000  # Adjust based on expected alert volume
 alerts = []  # List to store processed alert IDs
 
+DEDUP_WINDOW_SECONDS = int(os.getenv("DEDUP_WINDOW_SECONDS", "300"))  # 5-minute window for location dedup
+recent_locations = {}  # location -> timestamp of last alert
+
 def check_dns():
     try:
         requests.get("https://www.oref.org.il", timeout=5)
@@ -111,6 +114,31 @@ def add_alert_id(alert_id):
     if len(alerts) >= MAX_ALERTS:
         alerts.pop(0)  # Remove oldest ID if limit reached
     alerts.append(alert_id)
+
+
+def get_new_locations(alert_locations):
+    """Return only locations not recently alerted, and record all as seen.
+
+    During a rocket barrage Oref often sends several alerts within minutes
+    where each alert is a superset of the previous one (same locations plus a
+    few new ones). This function filters out already-seen locations so only
+    genuinely new ones trigger a message.
+    """
+    now = time.time()
+
+    # Purge expired entries from the window
+    expired = [loc for loc, ts in recent_locations.items()
+               if now - ts > DEDUP_WINDOW_SECONDS]
+    for loc in expired:
+        del recent_locations[loc]
+
+    new_locs = []
+    for loc in alert_locations:
+        if loc not in recent_locations:
+            new_locs.append(loc)
+        recent_locations[loc] = now  # refresh timestamp for every location
+
+    return new_locs
 
 
 def start_local_server():
@@ -249,8 +277,17 @@ def monitor():
             logger.info(f"Alert data: {alert['data']}, Region: {region}")
             if alert["id"] not in alerts and not is_test_alert(alert):
                 add_alert_id(alert["id"])
-                alarm_on(alert)
-                logger.info(f"Processed alert ID: {alert['id']}")
+                new_locs = get_new_locations(alert["data"])
+                if new_locs:
+                    alert_to_send = dict(alert)
+                    alert_to_send["data"] = new_locs
+                    alarm_on(alert_to_send)
+                    logger.info(f"Processed alert ID: {alert['id']} "
+                                f"({len(new_locs)} new / {len(alert['data'])} total locations)")
+                else:
+                    logger.info(f"Skipped alert ID: {alert['id']} — all {len(alert['data'])} "
+                                f"locations already alerted within the last "
+                                f"{DEDUP_WINDOW_SECONDS}s")
             else:
                 logger.debug(f"Alert already processed or marked as test: {alert['id']}")
     except Exception as ex:
