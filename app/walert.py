@@ -285,7 +285,10 @@ def monitor():
             if alert["id"] not in alerts and not is_test_alert(alert):
                 add_alert_id(alert["id"])
                 if is_relevant_location_new(alert["data"]):
-                    alarm_on(alert)
+                    alert_to_send = dict(alert)
+                    if region != "*":
+                        alert_to_send["data"] = [loc for loc in alert["data"] if loc == region]
+                    alarm_on(alert_to_send)
                     logger.info(f"Processed alert ID: {alert['id']}")
                 else:
                     logger.info(f"Skipped alert ID: {alert['id']} — "
