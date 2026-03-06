@@ -71,6 +71,9 @@ else:
 MAX_ALERTS = 1000  # Adjust based on expected alert volume
 alerts = []  # List to store processed alert IDs
 
+DEDUP_WINDOW_SECONDS = int(os.getenv("DEDUP_WINDOW_SECONDS", "300"))  # 5-minute window for location dedup
+recent_locations = {}  # location -> timestamp of last alert
+
 def check_dns():
     try:
         requests.get("https://www.oref.org.il", timeout=5)
@@ -111,6 +114,38 @@ def add_alert_id(alert_id):
     if len(alerts) >= MAX_ALERTS:
         alerts.pop(0)  # Remove oldest ID if limit reached
     alerts.append(alert_id)
+
+
+def is_relevant_location_new(alert_locations):
+    """Return True if the configured region has not been alerted recently.
+
+    During a rocket barrage Oref sends several alerts within minutes where
+    each new alert is a superset of the previous one.  Only the locations
+    matching the user's REGION filter matter — if those were already sent
+    within DEDUP_WINDOW_SECONDS, the whole alert is redundant regardless of
+    whatever extra cities were appended.
+
+    For REGION="*" every distinct location is tracked; the alert is sent only
+    when at least one location in it is genuinely new.
+    """
+    now = time.time()
+
+    # Purge expired entries from the window
+    expired = [loc for loc, ts in recent_locations.items()
+               if now - ts > DEDUP_WINDOW_SECONDS]
+    for loc in expired:
+        del recent_locations[loc]
+
+    # Which locations are relevant to our region setting?
+    relevant = alert_locations if region == "*" else [loc for loc in alert_locations if loc == region]
+
+    has_new = any(loc not in recent_locations for loc in relevant)
+
+    # Mark all relevant locations as seen (refresh timestamps too)
+    for loc in relevant:
+        recent_locations[loc] = now
+
+    return has_new
 
 
 def start_local_server():
@@ -249,8 +284,16 @@ def monitor():
             logger.info(f"Alert data: {alert['data']}, Region: {region}")
             if alert["id"] not in alerts and not is_test_alert(alert):
                 add_alert_id(alert["id"])
-                alarm_on(alert)
-                logger.info(f"Processed alert ID: {alert['id']}")
+                if is_relevant_location_new(alert["data"]):
+                    alert_to_send = dict(alert)
+                    if region != "*":
+                        alert_to_send["data"] = [loc for loc in alert["data"] if loc == region]
+                    alarm_on(alert_to_send)
+                    logger.info(f"Processed alert ID: {alert['id']}")
+                else:
+                    logger.info(f"Skipped alert ID: {alert['id']} — "
+                                f"region '{region}' already alerted within the last "
+                                f"{DEDUP_WINDOW_SECONDS}s")
             else:
                 logger.debug(f"Alert already processed or marked as test: {alert['id']}")
     except Exception as ex:
