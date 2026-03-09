@@ -71,7 +71,7 @@ else:
 MAX_ALERTS = 1000  # Adjust based on expected alert volume
 alerts = []  # List to store processed alert IDs
 
-DEDUP_WINDOW_SECONDS = int(os.getenv("DEDUP_WINDOW_SECONDS", "300"))  # 5-minute window for location dedup
+DEDUP_WINDOW_SECONDS = int(os.getenv("DEDUP_WINDOW_SECONDS", "120"))  # 2-minute window for location dedup
 recent_locations = {}  # location -> timestamp of last alert
 
 def check_dns():

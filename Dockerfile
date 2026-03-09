@@ -1,12 +1,16 @@
-FROM ubuntu:20.04
+FROM ubuntu:26.04
 
 LABEL maintainer="ynixon@gmail.com"
 
-# Install pip3 and dependencies in a single layer to reduce image size
+# Install Python and create a virtual environment
 RUN apt-get update && \
-    apt-get install -yqq python3-pip && \
-    pip3 install --upgrade pip setuptools --no-cache-dir && \
-    rm -rf /var/lib/apt/lists/*  # Clean up apt cache to reduce image size
+    apt-get install -yqq python3 python3-venv python3-pip && \
+    python3 -m venv /opt/venv && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN pip install --upgrade pip setuptools --no-cache-dir
 
 # Set environment variables for Python encoding and locale
 ENV PYTHONIOENCODING="utf-8" \
@@ -17,7 +21,7 @@ ENV PYTHONIOENCODING="utf-8" \
 
 # Copy and install Python dependencies
 COPY requirements.txt /tmp/requirements.txt
-RUN pip3 install --no-cache-dir -r /tmp/requirements.txt && rm /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt && rm /tmp/requirements.txt
 
 # Create working directory
 WORKDIR /app
@@ -26,4 +30,4 @@ WORKDIR /app
 COPY app/ /app
 
 # Run the application
-ENTRYPOINT ["/usr/bin/python3", "/app/walert.py"]
+ENTRYPOINT ["python", "/app/walert.py"]
