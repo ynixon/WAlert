@@ -2,15 +2,15 @@ FROM ubuntu:26.04
 
 LABEL maintainer="ynixon@gmail.com"
 
-# Install Python and create a virtual environment
+# Install Python and create a virtual environment (no system pip needed)
 RUN apt-get update && \
-    apt-get install -yqq python3 python3-venv python3-pip && \
+    apt-get install -yqq python3 python3-venv && \
     python3 -m venv /opt/venv && \
     rm -rf /var/lib/apt/lists/*
 
 ENV PATH="/opt/venv/bin:$PATH"
 
-RUN pip install --upgrade pip setuptools --no-cache-dir
+RUN pip install --upgrade "pip>=26.0" setuptools --no-cache-dir
 
 # Set environment variables for Python encoding and locale
 ENV PYTHONIOENCODING="utf-8" \
